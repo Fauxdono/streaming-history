@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Crown } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useTheme } from './themeprovider.js'; // Add theme import if not passed as prop
 
@@ -266,10 +267,13 @@ const StreamingByYear = ({ rawPlayData = [], formatDuration, isDarkMode: propIsD
                   }`}>
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 rounded-full" style={{ backgroundColor: service.color }}></div>
-                      <h5 className={`font-bold capitalize ${
+                      <h5 className={`font-bold capitalize relative inline-block ${
                         themedColors.text
                       }`}>
                         {service.service.replace('_', ' ')}
+                        {index === 0 && (
+                          <Crown size={11.25} fill="currentColor" strokeWidth={1} className="absolute -top-2 -right-4 text-yellow-500 rotate-[22deg] pointer-events-none" />
+                        )}
                       </h5>
                     </div>
                     <div className={`text-sm mt-1 ${

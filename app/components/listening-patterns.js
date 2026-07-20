@@ -955,18 +955,26 @@ const ListeningPatterns = ({
               colors.text
             }`}>Time Period Stats</h3>
             <ul className="space-y-2">
-              {timeOfDayData.periods.map((period, index) => (
+              {(() => {
+                const maxCount = Math.max(...timeOfDayData.periods.map(p => p.count), 0);
+                return timeOfDayData.periods.map((period, index) => (
                 <li key={index} className={`p-2 ${colors.card}`}>
                   <span className={`font-bold flex items-center gap-2 ${colors.text}`}>
                     <SliceDot color={period.color} />
-                    {period.fullName}:
+                    <span className="relative inline-block">
+                      {period.fullName}:
+                      {maxCount > 0 && period.count === maxCount && (
+                        <Crown size={11.25} fill="currentColor" strokeWidth={1} className="absolute -top-2 -right-4 text-yellow-500 rotate-[22deg] pointer-events-none" />
+                      )}
+                    </span>
                   </span>
                   <div className={`ml-5 ${colors.textLight}`}>
                     <div>{period.count} plays</div>
                     <div>{formatDuration(period.totalMs)} listening time</div>
                   </div>
                 </li>
-              ))}
+                ));
+              })()}
             </ul>
           </div>
         </div>
@@ -1180,18 +1188,26 @@ const ListeningPatterns = ({
               colors.text
             }`}>Seasonal Stats</h3>
             <ul className="space-y-2">
-              {monthlyData.seasons.map((season, index) => (
+              {(() => {
+                const maxCount = Math.max(...monthlyData.seasons.map(s => s.count), 0);
+                return monthlyData.seasons.map((season, index) => (
                 <li key={index} className={`p-2 ${colors.card}`}>
                   <span className={`font-bold flex items-center gap-2 ${colors.text}`}>
                     <SliceDot color={season.color} />
-                    {season.fullName}:
+                    <span className="relative inline-block">
+                      {season.fullName}:
+                      {maxCount > 0 && season.count === maxCount && (
+                        <Crown size={11.25} fill="currentColor" strokeWidth={1} className="absolute -top-2 -right-4 text-yellow-500 rotate-[22deg] pointer-events-none" />
+                      )}
+                    </span>
                   </span>
                   <div className={`ml-5 ${colors.textLight}`}>
                     <div>{season.count} plays</div>
                     <div>{formatDuration(season.totalMs)} listening time</div>
                   </div>
                 </li>
-              ))}
+                ));
+              })()}
             </ul>
           </div>
         </div>
@@ -1523,7 +1539,12 @@ const ListeningPatterns = ({
                         >
                           <div className="flex items-center gap-2">
                             <RankBadge rank={index + 1} isDarkMode={isDarkMode} />
-                            <h4 className="font-bold truncate min-w-0" title={loc.name}>{loc.name}</h4>
+                            <h4 className="font-bold truncate min-w-0 relative inline-block" title={loc.name}>
+                              {loc.name}
+                              {index === 0 && (
+                                <Crown size={11.25} fill="currentColor" strokeWidth={1} className="absolute -top-2 -right-4 text-yellow-500 rotate-[22deg] pointer-events-none" />
+                              )}
+                            </h4>
                           </div>
                           <div className={`text-sm mt-1 ${colors.textLight}`}>
                             <div>{formatDuration(loc.totalMs)}</div>
@@ -1559,7 +1580,14 @@ const ListeningPatterns = ({
                               onClick={() => setSelectedCountry({ code: loc.code, name: loc.name })}
                             >
                               <td className={`px-3 py-2 ${colors.textLighter}`}>{index + 1}</td>
-                              <td className={`px-3 py-2 font-medium ${colors.text}`}>{loc.name}</td>
+                              <td className={`px-3 py-2 font-medium ${colors.text}`}>
+                                <span className="relative inline-block">
+                                  {loc.name}
+                                  {index === 0 && (
+                                    <Crown size={11.25} fill="currentColor" strokeWidth={1} className="absolute -top-2 -right-4 text-yellow-500 rotate-[22deg] pointer-events-none" />
+                                  )}
+                                </span>
+                              </td>
                               <td className={`px-3 py-2 text-right ${colors.textLight}`}>{loc.plays.toLocaleString()}</td>
                               <td className={`px-3 py-2 text-right ${colors.textLight}`}>{formatDuration(loc.totalMs)}</td>
                               <td className={`px-3 py-2 text-right ${colors.textLight}`}>{loc.artists.toLocaleString()}</td>
