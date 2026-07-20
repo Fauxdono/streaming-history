@@ -183,7 +183,7 @@ export default function StatsTab({
   // cake-sprinkle border, previewed live before download.
   const overviewRef = useRef(null);
   const recordsRef = useRef(null);
-  const { setTheme } = useTheme();
+  const { setTheme, minPlayDuration, skipFilter, fullListenOnly, skipEndThreshold } = useTheme();
   const [exporting, setExporting] = useState(false);
   const [exported, setExported] = useState(false);
   const [useBorder, setUseBorder] = useState(false);
@@ -332,6 +332,19 @@ export default function StatsTab({
     return pct >= 0.1 ? pct : null;
   }, [records, filteredStats]);
 
+  // Mirrors the current Play Filters settings (minPlayDuration/skipEndThreshold/
+  // skipFilter/fullListenOnly) so the footnote never drifts from what's actually applied.
+  const filterSummary = useMemo(() => {
+    const minDurationSec = Math.round(minPlayDuration / 1000);
+    const skipToleranceSec = Math.round(skipEndThreshold / 1000);
+    return [
+      minDurationSec > 0 ? `only counting plays over ${minDurationSec}s` : 'no minimum play duration',
+      `skip tolerance: ${skipEndThreshold > 0 ? `${skipToleranceSec}s` : 'off'}`,
+      `exclude skipped tracks: ${skipFilter ? 'on' : 'off'}`,
+      `completed plays only: ${fullListenOnly ? 'on' : 'off'}`,
+    ];
+  }, [minPlayDuration, skipEndThreshold, skipFilter, fullListenOnly]);
+
   return stats ? (
           <div className={
             colorMode === 'colorful'
@@ -410,11 +423,13 @@ export default function StatsTab({
                       ≈ {wakingPct < 10 ? wakingPct.toFixed(1) : Math.round(wakingPct)}% of your waking hours had music on 🎂
                     </div>
                   )}
-                  <div className={
+                  <div className={`grid grid-cols-2 gap-x-3 gap-y-0.5 mt-1 text-xs ${
                     colorMode === 'colorful'
-                      ? 'text-xs mt-1 text-indigo-500 dark:text-indigo-500'
-                      : 'text-xs mt-1 opacity-50'
-                  }>only counting plays over 30 seconds</div>
+                      ? 'text-indigo-500 dark:text-indigo-500'
+                      : 'opacity-50'
+                  }`}>
+                    {filterSummary.map((line) => <div key={line}>{line}</div>)}
+                  </div>
 
                   {/* Share as image — collapsible poster-export controls */}
                   {(() => {
