@@ -100,6 +100,10 @@ const SupportDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' }) 
     }
   }, [isOpen, buttonRef, HEART_WIDTH, HEART_HEIGHT]);
 
+  // At the smallest text size the buttons can look oversized next to the
+  // shrunk heart, so scale them down a further 20% there only.
+  const buttonScale = fontSize === 'small' ? 0.8 : 1;
+
   // Raised shadow that flips to inset while pressed (site-wide button language)
   const linkFx = isColorful
     ? (isDark
@@ -155,7 +159,7 @@ const SupportDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' }) 
             <div
               key={platform}
               className="absolute"
-              style={{ left, top: '25%', transform: 'translate(-50%, -50%)' }}
+              style={{ left, top: '25%', transform: `translate(-50%, -50%) scale(${buttonScale})` }}
             >
               <button
                 onClick={() => setActivePlatform(platform)}
@@ -178,7 +182,7 @@ const SupportDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' }) 
 
         <div
           className="absolute"
-          style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
+          style={{ left: '50%', top: '50%', transform: `translate(-50%, -50%) scale(${buttonScale})` }}
         >
           <a
             href={platformLinks[activePlatform]}
