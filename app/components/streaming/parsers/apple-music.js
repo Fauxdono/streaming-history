@@ -102,6 +102,7 @@ export async function processAppleMusicCSV(content) {
             ms_played: row['Is User Initiated'] ? 240000 : 30000,
             master_metadata_album_artist_name: 'Kenny Rogers & The First Edition',
             master_metadata_album_album_name: 'Unknown Album',
+            reason_end: 'trackdone',
             source: 'apple_music'
           };
         }
@@ -121,11 +122,12 @@ export async function processAppleMusicCSV(content) {
           ms_played: estimatedPlayTime,
           master_metadata_album_artist_name: artistName,
           master_metadata_album_album_name: 'Unknown Album',
+          reason_end: 'trackdone',
           source: 'apple_music'
         };
       });
   }
-  
+
   function processDailyTracks(data) {
     return data
       .filter(row => row['Track Description'] && row['Date Played'])
@@ -177,6 +179,7 @@ export async function processAppleMusicCSV(content) {
           master_metadata_album_artist_name: artistName,
           master_metadata_album_album_name: 'Unknown Album',
           platform: row['Source Type'] || 'APPLE',
+          reason_end: 'trackdone',
           source: 'apple_music'
         };
         
@@ -228,11 +231,12 @@ export async function processAppleMusicCSV(content) {
           ms_played: 180000, // Default 3 minutes
           master_metadata_album_artist_name: artistName,
           master_metadata_album_album_name: 'Unknown Album',
+          reason_end: 'trackdone',
           source: 'apple_music'
         };
       });
   }
-  
+
   function createAppleEntry(trackName, timestamp, duration, artist, album, trackDuration, isPodcast) {
     const entry = {
       master_metadata_track_name: trackName,
@@ -242,6 +246,7 @@ export async function processAppleMusicCSV(content) {
       master_metadata_album_album_name: album,
       duration_ms: trackDuration,
       platform: 'APPLE',
+      reason_end: 'trackdone',
       source: 'apple_music'
     };
     

@@ -49,6 +49,7 @@ export async function processDeezerXLSX(file) {
         master_metadata_album_album_name: albumName,
         isrc: isrc,
         platform: `DEEZER-${platform.toUpperCase()}${platformModel ? '-' + platformModel.toUpperCase() : ''}`,
+        reason_end: 'trackdone',
         source: 'deezer'
       };
     });
