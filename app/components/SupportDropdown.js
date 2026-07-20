@@ -193,8 +193,8 @@ const SupportDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' }) 
           style={{ left: '40%', top: '72%', transform: 'translate(-50%, -50%) rotate(50deg)' }}
         >
           <span>N</span>
-          <svg width="10" height="10" viewBox="0 0 24 24" aria-hidden="true">
-            <path d={HEART_PATH} fill="currentColor" />
+          <svg width="10" height="10" viewBox="0 0 24 24" aria-hidden="true" style={{ transform: 'rotate(-3deg)' }}>
+            <path d={HEART_PATH} fill="none" stroke="currentColor" strokeWidth="1.5" />
           </svg>
           <span>M</span>
         </div>
