@@ -71,8 +71,8 @@ const SupportDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' }) 
   // Position dropdown relative to button
   const [position, setPosition] = useState({ top: 0, left: 0 });
 
-  const HEART_WIDTH = 280;
-  const HEART_HEIGHT = 260;
+  const HEART_WIDTH = 238;
+  const HEART_HEIGHT = 221;
 
   useEffect(() => {
     if (isOpen && buttonRef.current) {
