@@ -5,7 +5,7 @@ import { useTheme } from './themeprovider';
 import { Coffee } from 'lucide-react';
 
 const SupportDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' }) => {
-  const { theme } = useTheme();
+  const { theme, fontSize } = useTheme();
   const isDark = theme === 'dark';
   const dropdownRef = useRef(null);
   const [activePlatform, setActivePlatform] = useState('ko-fi');
@@ -71,8 +71,12 @@ const SupportDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' }) 
   // Position dropdown relative to button
   const [position, setPosition] = useState({ top: 0, left: 0 });
 
-  const HEART_WIDTH = 238;
-  const HEART_HEIGHT = 221;
+  // Base size (already 15% down from the original 280x260); scales up with
+  // the app font size (root goes 14-20px) so larger text doesn't overflow
+  // the fixed heart the way it did before.
+  const fontScale = ({ small: 14, medium: 16, large: 18, xlarge: 20 }[fontSize] || 16) / 16;
+  const HEART_WIDTH = Math.round(238 * fontScale);
+  const HEART_HEIGHT = Math.round(221 * fontScale);
 
   useEffect(() => {
     if (isOpen && buttonRef.current) {
@@ -94,7 +98,7 @@ const SupportDropdown = ({ isOpen, onClose, buttonRef, colorMode = 'minimal' }) 
 
       setPosition({ top, left });
     }
-  }, [isOpen, buttonRef]);
+  }, [isOpen, buttonRef, HEART_WIDTH, HEART_HEIGHT]);
 
   // Raised shadow that flips to inset while pressed (site-wide button language)
   const linkFx = isColorful
