@@ -39,6 +39,18 @@ import SettingsPanel from './SettingsPanel.js';
 import { buildFavoritesIndex } from './streaming/favorites.js';
 import { buildRecommendations } from './recommendations/engine.js';
 
+// Each tab's year/date filter (year, range, rangeMode) and view mode live in
+// two keyed objects, persisted to localStorage so selections survive app
+// restarts. Downstream code keeps the original per-tab names via aliases
+// declared next to the hooks.
+const YEAR_FILTER_TABS = ['stats', 'artists', 'albums', 'calendar', 'custom', 'patterns', 'behavior', 'discovery', 'podcasts'];
+const defaultYearFilters = () => Object.fromEntries(
+  YEAR_FILTER_TABS.map(tab => [tab, { year: 'all', range: { startYear: '', endYear: '' }, rangeMode: false }])
+);
+const DEFAULT_VIEW_MODES = { artists: 'grid', albums: 'grid', custom: 'grid', podcasts: 'grid', patterns: 'grid', calendar: 'grid' };
+const YEAR_FILTERS_STORAGE_KEY = 'cakeculator_year_filters';
+const VIEW_MODES_STORAGE_KEY = 'cakeculator_view_modes';
+
 // Cache for service colors to avoid recreating on each render
 const SERVICE_COLORS = {
   spotify: {
@@ -114,6 +126,154 @@ const SpotifyAnalyzer = ({
   const discoveryColors = getTabColors(discoveryTextTheme, discoveryBackgroundTheme);
   
   // Core application state
+
+  // Per-tab year/date filters and view modes — persisted. Restored in an
+  // effect (not the initializer) so server and first client render agree.
+  const [yearFilters, setYearFilters] = useState(defaultYearFilters);
+  const [viewModes, setViewModes] = useState(DEFAULT_VIEW_MODES);
+  // Persist is gated on state (not a ref): the gate only opens on a render
+  // that already includes the restored values, so the pre-restore defaults
+  // can never clobber saved selections (StrictMode replays/remounts included).
+  const [filtersRestored, setFiltersRestored] = useState(false);
+
+  useEffect(() => {
+    try {
+      const savedFilters = JSON.parse(localStorage.getItem(YEAR_FILTERS_STORAGE_KEY) || 'null');
+      if (savedFilters) {
+        setYearFilters(prev => {
+          const next = { ...prev };
+          YEAR_FILTER_TABS.forEach(tab => {
+            const s = savedFilters[tab];
+            if (!s || typeof s !== 'object') return;
+            next[tab] = {
+              year: typeof s.year === 'string' ? s.year : 'all',
+              range: s.range && typeof s.range.startYear === 'string' && typeof s.range.endYear === 'string'
+                ? { startYear: s.range.startYear, endYear: s.range.endYear }
+                : { startYear: '', endYear: '' },
+              rangeMode: !!s.rangeMode,
+            };
+          });
+          return next;
+        });
+      }
+      const savedModes = JSON.parse(localStorage.getItem(VIEW_MODES_STORAGE_KEY) || 'null');
+      if (savedModes) {
+        setViewModes(prev => Object.fromEntries(
+          Object.keys(prev).map(tab => [tab, typeof savedModes[tab] === 'string' ? savedModes[tab] : prev[tab]])
+        ));
+      }
+    } catch {
+      // Corrupt storage — keep defaults
+    }
+    setFiltersRestored(true);
+  }, []);
+
+  useEffect(() => {
+    if (!filtersRestored) return;
+    try {
+      localStorage.setItem(YEAR_FILTERS_STORAGE_KEY, JSON.stringify(yearFilters));
+      localStorage.setItem(VIEW_MODES_STORAGE_KEY, JSON.stringify(viewModes));
+    } catch {
+      // Storage full/unavailable — selections just won't persist
+    }
+  }, [filtersRestored, yearFilters, viewModes]);
+
+  // Stable per-tab setter aliases (value or functional-updater accepted).
+  // Patches touch only their own tab, so other tabs' object identities —
+  // and any memos keyed on them — are preserved.
+  const yearFilterSetters = useMemo(() => {
+    const make = (tab, key) => (value) => setYearFilters(prev => {
+      const next = typeof value === 'function' ? value(prev[tab][key]) : value;
+      if (next === prev[tab][key]) return prev;
+      return { ...prev, [tab]: { ...prev[tab], [key]: next } };
+    });
+    return {
+      setSelectedStreaksYear: make('stats', 'year'),
+      setSelectedArtistYear: make('artists', 'year'),
+      setYearRange: make('artists', 'range'),
+      setYearRangeMode: make('artists', 'rangeMode'),
+      setSelectedAlbumYear: make('albums', 'year'),
+      setAlbumYearRange: make('albums', 'range'),
+      setAlbumYearRangeMode: make('albums', 'rangeMode'),
+      setSelectedCalendarYear: make('calendar', 'year'),
+      setCalendarYearRange: make('calendar', 'range'),
+      setCalendarYearRangeMode: make('calendar', 'rangeMode'),
+      setCustomTrackYear: make('custom', 'year'),
+      setCustomYearRange: make('custom', 'range'),
+      setCustomYearRangeMode: make('custom', 'rangeMode'),
+      setSelectedPatternYear: make('patterns', 'year'),
+      setPatternYearRange: make('patterns', 'range'),
+      setPatternYearRangeMode: make('patterns', 'rangeMode'),
+      setSelectedBehaviorYear: make('behavior', 'year'),
+      setBehaviorYearRange: make('behavior', 'range'),
+      setBehaviorYearRangeMode: make('behavior', 'rangeMode'),
+      setSelectedDiscoveryYear: make('discovery', 'year'),
+      setDiscoveryYearRange: make('discovery', 'range'),
+      setDiscoveryYearRangeMode: make('discovery', 'rangeMode'),
+      setSelectedPodcastYear: make('podcasts', 'year'),
+      setPodcastYearRange: make('podcasts', 'range'),
+      setPodcastYearRangeMode: make('podcasts', 'rangeMode'),
+    };
+  }, []);
+  const {
+    setSelectedStreaksYear, setSelectedArtistYear, setYearRange, setYearRangeMode,
+    setSelectedAlbumYear, setAlbumYearRange, setAlbumYearRangeMode,
+    setSelectedCalendarYear, setCalendarYearRange, setCalendarYearRangeMode,
+    setCustomTrackYear, setCustomYearRange, setCustomYearRangeMode,
+    setSelectedPatternYear, setPatternYearRange, setPatternYearRangeMode,
+    setSelectedBehaviorYear, setBehaviorYearRange, setBehaviorYearRangeMode,
+    setSelectedDiscoveryYear, setDiscoveryYearRange, setDiscoveryYearRangeMode,
+    setSelectedPodcastYear, setPodcastYearRange, setPodcastYearRangeMode,
+  } = yearFilterSetters;
+
+  const viewModeSetters = useMemo(() => {
+    const make = (tab) => (value) => setViewModes(prev => {
+      const next = typeof value === 'function' ? value(prev[tab]) : value;
+      return next === prev[tab] ? prev : { ...prev, [tab]: next };
+    });
+    return {
+      setArtistsViewMode: make('artists'),
+      setAlbumsViewMode: make('albums'),
+      setCustomViewMode: make('custom'),
+      setPodcastViewMode: make('podcasts'),
+      setPatternsViewMode: make('patterns'),
+      setCalendarViewMode: make('calendar'),
+    };
+  }, []);
+  const { setArtistsViewMode, setAlbumsViewMode, setCustomViewMode, setPodcastViewMode, setPatternsViewMode, setCalendarViewMode } = viewModeSetters;
+
+  const selectedStreaksYear = yearFilters.stats.year;
+  const selectedArtistYear = yearFilters.artists.year;
+  const yearRange = yearFilters.artists.range;
+  const yearRangeMode = yearFilters.artists.rangeMode;
+  const selectedAlbumYear = yearFilters.albums.year;
+  const albumYearRange = yearFilters.albums.range;
+  const albumYearRangeMode = yearFilters.albums.rangeMode;
+  const selectedCalendarYear = yearFilters.calendar.year;
+  const calendarYearRange = yearFilters.calendar.range;
+  const calendarYearRangeMode = yearFilters.calendar.rangeMode;
+  const customTrackYear = yearFilters.custom.year;
+  const customYearRange = yearFilters.custom.range;
+  const customYearRangeMode = yearFilters.custom.rangeMode;
+  const selectedPatternYear = yearFilters.patterns.year;
+  const patternYearRange = yearFilters.patterns.range;
+  const patternYearRangeMode = yearFilters.patterns.rangeMode;
+  const selectedBehaviorYear = yearFilters.behavior.year;
+  const behaviorYearRange = yearFilters.behavior.range;
+  const behaviorYearRangeMode = yearFilters.behavior.rangeMode;
+  const selectedDiscoveryYear = yearFilters.discovery.year;
+  const discoveryYearRange = yearFilters.discovery.range;
+  const discoveryYearRangeMode = yearFilters.discovery.rangeMode;
+  const selectedPodcastYear = yearFilters.podcasts.year;
+  const podcastYearRange = yearFilters.podcasts.range;
+  const podcastYearRangeMode = yearFilters.podcasts.rangeMode;
+  const artistsViewMode = viewModes.artists;
+  const albumsViewMode = viewModes.albums;
+  const customViewMode = viewModes.custom;
+  const podcastViewMode = viewModes.podcasts;
+  const patternsViewMode = viewModes.patterns;
+  const calendarViewMode = viewModes.calendar;
+
   const [activeTrackTab, setActiveTrackTab] = useState('top250');
   const [songsByMonth, setSongsByMonth] = useState({});
   const [songsByYear, setSongsByYear] = useState({});
@@ -121,7 +281,6 @@ const SpotifyAnalyzer = ({
   const [topArtists, setTopArtists] = useState([]);
   const [topAlbums, setTopAlbums] = useState([]);
   const [topArtistsCount, setTopArtistsCount] = useState(50);
-  const [artistsViewMode, setArtistsViewMode] = useState('grid'); // 'grid', 'list'
   const [expandedArtistCards, setExpandedArtistCards] = useState({});
   const [artistSelectionMode, setArtistSelectionMode] = useState(false);
   const [artistsSortBy, setArtistsSortBy] = useState('totalPlayed'); // 'totalPlayed', 'playCount'
@@ -166,7 +325,6 @@ const SpotifyAnalyzer = ({
   }, [colorMode, theme, applyRainbow]);
 
   const [topAlbumsCount, setTopAlbumsCount] = useState(50);
-  const [albumsViewMode, setAlbumsViewMode] = useState('grid'); // 'grid', 'list'
   const [expandedAlbumListRows, setExpandedAlbumListRows] = useState({});
   const [albumsSortBy, setAlbumsSortBy] = useState('totalPlayed'); // 'totalPlayed', 'playCount'
   const [albumsSortPress, setAlbumsSortPress] = useState(0);
@@ -219,8 +377,6 @@ const SpotifyAnalyzer = ({
   const [briefObsessions, setBriefObsessions] = useState([]);
   const [songPlayHistory, setSongPlayHistory] = useState({});
   const [artistsByYear, setArtistsByYear] = useState({});
-  const [yearRangeMode, setYearRangeMode] = useState(false);
-  const [yearRange, setYearRange] = useState({ startYear: '', endYear: '' });
   const [rawPlayData, setRawPlayData] = useState([]);
   // Pristine parse output, before user edits — overrides are always
   // re-applied to this so edits stay idempotent and resettable.
@@ -232,7 +388,6 @@ const SpotifyAnalyzer = ({
   const [importedFavorites, setImportedFavorites] = useState([]);
   const favoritesIndex = useMemo(() => buildFavoritesIndex(importedFavorites), [importedFavorites]);
   const [streaks, setStreaks] = useState(null);
-  const [selectedStreaksYear, setSelectedStreaksYear] = useState('all');
   const [selectedArtists, setSelectedArtists] = useState([]);
   const [artistSearch, setArtistSearch] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState([]);
@@ -243,8 +398,7 @@ const SpotifyAnalyzer = ({
   const [includeLastfmData, setIncludeLastfmData] = useState(false);
   const [storedLastfmCount, setStoredLastfmCount] = useState(0);
   const [uploadedFileList, setUploadedFileList] = useState(null);
-  const [selectedArtistYear, setSelectedArtistYear] = useState('all');
-  
+
   // Simplified state - removed authentication
   const [storageNotification, setStorageNotification] = useState(null);
   
@@ -253,25 +407,10 @@ const SpotifyAnalyzer = ({
   // Add date range states for artists (like Songs)
   const [artistStartDate, setArtistStartDate] = useState('');
   const [artistEndDate, setArtistEndDate] = useState('');
-  const [selectedAlbumYear, setSelectedAlbumYear] = useState('all');
-  const [albumYearRangeMode, setAlbumYearRangeMode] = useState(false);
-  const [albumYearRange, setAlbumYearRange] = useState({ startYear: '', endYear: '' });
   const [albumsByYear, setAlbumsByYear] = useState({});
-  
-  // Add date range states for calendar tab
-  const [selectedCalendarYear, setSelectedCalendarYear] = useState('all');
-  const [calendarYearRange, setCalendarYearRange] = useState({ startYear: '', endYear: '' });
-  const [calendarYearRangeMode, setCalendarYearRangeMode] = useState(false);
   // Add date range states for albums (like Songs)
   const [albumStartDate, setAlbumStartDate] = useState('');
   const [albumEndDate, setAlbumEndDate] = useState('');
-  const [customTrackYear, setCustomTrackYear] = useState('all');
-  const [customYearRange, setCustomYearRange] = useState({ startYear: '', endYear: '' });
-  const [customYearRangeMode, setCustomYearRangeMode] = useState(false);
-  const [customViewMode, setCustomViewMode] = useState('grid'); // 'grid', 'compact'
-  const [podcastViewMode, setPodcastViewMode] = useState('grid'); // 'grid', 'compact'
-  const [patternsViewMode, setPatternsViewMode] = useState('grid'); // 'grid', 'list'
-  const [calendarViewMode, setCalendarViewMode] = useState('grid'); // 'grid', 'list'
   const [showYearSidebar, setShowYearSidebar] = useState(true);
   const [yearSelectorExpanded, setYearSelectorExpanded] = useState(false);
   const [yearSelectorPosition, setYearSelectorPosition] = useState('right');
@@ -356,18 +495,6 @@ const SpotifyAnalyzer = ({
       window.screen.orientation?.removeEventListener?.('change', checkSoon);
     };
   }, [topTabsPosition]); // Default width for side positioning
-  const [selectedPatternYear, setSelectedPatternYear] = useState('all');
-  const [patternYearRange, setPatternYearRange] = useState({ startYear: '', endYear: '' });
-  const [patternYearRangeMode, setPatternYearRangeMode] = useState(false);
-  const [selectedBehaviorYear, setSelectedBehaviorYear] = useState('all');
-  const [behaviorYearRange, setBehaviorYearRange] = useState({ startYear: '', endYear: '' });
-  const [behaviorYearRangeMode, setBehaviorYearRangeMode] = useState(false);
-  const [selectedDiscoveryYear, setSelectedDiscoveryYear] = useState('all');
-  const [discoveryYearRange, setDiscoveryYearRange] = useState({ startYear: '', endYear: '' });
-  const [discoveryYearRangeMode, setDiscoveryYearRangeMode] = useState(false);
-  const [selectedPodcastYear, setSelectedPodcastYear] = useState('all');
-  const [podcastYearRange, setPodcastYearRange] = useState({ startYear: '', endYear: '' });
-  const [podcastYearRangeMode, setPodcastYearRangeMode] = useState(false);
 
   // Add refs for caching expensive operations
   const formatDurationCache = useRef(new Map());
