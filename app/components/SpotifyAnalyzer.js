@@ -22,7 +22,7 @@ import { enrichAlbums } from './albumEnrichment.js';
 import StatsTab from './tabs/StatsTab.js';
 import UploadTab from './tabs/UploadTab.js';
 import { RankBadge, RankBar } from './RankCardBits.js';
-import { getTabColors as getSharedTabColors, getChromeTint } from './theme.js';
+import { getTabColors as getSharedTabColors, getChromeTint, TAB_SIDEBAR_THEMES } from './theme.js';
 import CustomPlaylistCreator from './customplaylist.js';
 import UpdatesSection from './updatessection.js';
 import ExcelPreview from './excelpreview.js';
@@ -1961,95 +1961,9 @@ const SpotifyAnalyzer = ({
     const showSidebar = shouldShowSidebar(activeTab);
     setShowYearSidebar(showSidebar);
     
-    // Set the appropriate color theme based on the active tab (reverted to original TopTabs background colors)
-    switch(activeTab) {
-      case 'updates':
-        setSidebarColorTheme('fuchsia'); // Original TopTabs color for updates
-        break;
-      case 'upload':
-        setSidebarColorTheme('violet'); // Original TopTabs color for upload
-        break;
-      case 'stats':
-        setSidebarColorTheme('indigo'); // Original TopTabs color for stats
-        break;
-      case 'artists':
-        setSidebarColorTheme('blue'); // Original TopTabs color for artists
-        break;
-      case 'albums':
-        setSidebarColorTheme('cyan'); // Original TopTabs color for albums
-        break;
-      case 'custom':
-        setSidebarColorTheme('emerald'); // Original TopTabs color for custom/songs
-        break;
-      case 'calendar':
-        setSidebarColorTheme('green'); // Original TopTabs color for calendar
-        break;
-      case 'patterns':
-        setSidebarColorTheme('yellow'); // Original TopTabs color for patterns
-        break;
-      case 'behavior':
-        setSidebarColorTheme('amber'); // Original TopTabs color for behavior
-        break;
-      case 'discovery':
-        setSidebarColorTheme('orange'); // Original TopTabs color for discovery
-        break;
-      case 'podcasts':
-        setSidebarColorTheme('red'); // Original TopTabs color for podcasts
-        break;
-      case 'playlists':
-        setSidebarColorTheme('rose'); // Original TopTabs color for playlists
-        break;
-      case 'data':
-        setSidebarColorTheme('green'); // Terminal green for data
-        break;
-      default:
-        setSidebarColorTheme('blue');
-    }
-
-    // Set the appropriate text theme based on the active tab (shifted text colors - 4 positions down)
-    switch(activeTab) {
-      case 'updates':
-        setSidebarTextTheme('cyan'); // Shifted text color for updates
-        break;
-      case 'upload':
-        setSidebarTextTheme('emerald'); // Shifted text color for upload
-        break;
-      case 'stats':
-        setSidebarTextTheme('green'); // Shifted text color for stats
-        break;
-      case 'artists':
-        setSidebarTextTheme('yellow'); // Shifted text color for artists
-        break;
-      case 'albums':
-        setSidebarTextTheme('amber'); // Shifted text color for albums
-        break;
-      case 'custom':
-        setSidebarTextTheme('orange'); // Shifted text color for custom/songs
-        break;
-      case 'calendar':
-        setSidebarTextTheme('red'); // Shifted text color for calendar
-        break;
-      case 'patterns':
-        setSidebarTextTheme('rose'); // Shifted text color for patterns
-        break;
-      case 'behavior':
-        setSidebarTextTheme('fuchsia'); // Shifted text color for behavior
-        break;
-      case 'discovery':
-        setSidebarTextTheme('violet'); // Shifted text color for discovery
-        break;
-      case 'podcasts':
-        setSidebarTextTheme('indigo'); // Shifted text color for podcasts
-        break;
-      case 'playlists':
-        setSidebarTextTheme('blue'); // Shifted text color for playlists
-        break;
-      case 'data':
-        setSidebarTextTheme('green'); // Terminal green for data
-        break;
-      default:
-        setSidebarTextTheme('blue');
-    }
+    const tabTheme = TAB_SIDEBAR_THEMES[activeTab] || { bg: 'blue', text: 'blue' };
+    setSidebarColorTheme(tabTheme.bg);
+    setSidebarTextTheme(tabTheme.text);
   }, [activeTab, shouldShowSidebar]);
 
   // Convert selectedArtistYear to date range (like Songs)
@@ -2112,80 +2026,34 @@ const SpotifyAnalyzer = ({
 
   // Handle year selection from sidebar based on active tab
   const handleSidebarYearChange = useCallback((year) => {
-    // Always use 'all' string (not object reference) for consistency
-    const yearValue = year === 'all' ? 'all' : year;
-    
-    console.log("handleSidebarYearChange called with:", { year, activeTab });
-    
-    switch(activeTab) {
-      case 'stats':
-        console.log("Setting selectedStatsYear to:", year);
-        setSelectedStreaksYear(year);
-        break;
-      case 'artists':
-        console.log("Setting selectedArtistYear to:", year);
-        setSelectedArtistYear(year);
-        break;
-      case 'albums':
-        console.log("Setting selectedAlbumYear to:", year, "current value was:", selectedAlbumYear);
-        setSelectedAlbumYear(year);
-        break;
-      case 'custom':
-        handleCustomTrackYearChange(year);
-        break;
-      case 'patterns':
-        setSelectedPatternYear(year);
-        break;
-      case 'calendar':
-        handleCalendarYearChange(year);
-        break;
-      case 'behavior':
-        setSelectedBehaviorYear(year);
-        break;
-      case 'discovery':
-        setSelectedDiscoveryYear(year);
-        break;
-      case 'podcasts':
-        setSelectedPodcastYear(year);
-        break;
-      default:
-        // Default behavior
-        break;
-    }
-  }, [activeTab, handleCustomTrackYearChange]);
+    const yearSetters = {
+      stats: setSelectedStreaksYear,
+      artists: setSelectedArtistYear,
+      albums: setSelectedAlbumYear,
+      custom: handleCustomTrackYearChange,
+      patterns: setSelectedPatternYear,
+      calendar: handleCalendarYearChange,
+      behavior: setSelectedBehaviorYear,
+      discovery: setSelectedDiscoveryYear,
+      podcasts: setSelectedPodcastYear,
+    };
+    yearSetters[activeTab]?.(year);
+  }, [activeTab, handleCustomTrackYearChange, handleCalendarYearChange]);
 
   // Handle year range selection from sidebar
   const handleSidebarYearRangeChange = useCallback(({ startYear, endYear }) => {
-    switch(activeTab) {
-      case 'artists':
-        handleYearRangeChange({ startYear, endYear });
-        break;
-      case 'albums':
-        handleAlbumYearRangeChange({ startYear, endYear });
-        break;
-      case 'custom':
-        handleCustomTrackYearRangeChange({ startYear, endYear });
-        break;
-      case 'patterns':
-        setPatternYearRange({ startYear, endYear });
-        break;
-      case 'calendar':
-        handleCalendarYearRangeChange({ startYear, endYear });
-        break;
-      case 'behavior':
-        setBehaviorYearRange({ startYear, endYear });
-        break;
-      case 'discovery':
-        setDiscoveryYearRange({ startYear, endYear });
-        break;
-      case 'podcasts':
-        setPodcastYearRange({ startYear, endYear });
-        break;
-      default:
-        // Default behavior
-        break;
-    }
-  }, [activeTab, handleYearRangeChange, handleAlbumYearRangeChange, handleCustomTrackYearRangeChange]);
+    const rangeSetters = {
+      artists: handleYearRangeChange,
+      albums: handleAlbumYearRangeChange,
+      custom: handleCustomTrackYearRangeChange,
+      patterns: setPatternYearRange,
+      calendar: handleCalendarYearRangeChange,
+      behavior: setBehaviorYearRange,
+      discovery: setDiscoveryYearRange,
+      podcasts: setPodcastYearRange,
+    };
+    rangeSetters[activeTab]?.({ startYear, endYear });
+  }, [activeTab, handleYearRangeChange, handleAlbumYearRangeChange, handleCustomTrackYearRangeChange, handleCalendarYearRangeChange]);
 
   // Stable callback for year selector expand state — must be memoized to avoid
   // React 18 "Cannot update while rendering" warning from Strict Mode double-effect firing
@@ -2193,91 +2061,33 @@ const SpotifyAnalyzer = ({
     setYearSelectorExpanded(expanded);
   }, []);
 
-  // Handle range mode toggle from sidebar
+  // Handle range mode toggle from sidebar: flip the tab's range mode and, when
+  // entering range mode, default the range to the full span of available years
   const handleSidebarRangeModeToggle = useCallback((isRange) => {
-    console.log("handleSidebarRangeModeToggle called with:", { isRange, activeTab });
     const availableYears = Object.keys(artistsByYear).sort((a, b) => parseInt(a) - parseInt(b));
-    
-    switch(activeTab) {
-      case 'artists':
-        toggleYearRangeMode(isRange);
-        // If switching to range mode, also set a default range
-        if (isRange && availableYears.length >= 2) {
-          handleYearRangeChange({
-            startYear: availableYears[0],
-            endYear: availableYears[availableYears.length - 1]
-          });
-        }
-        break;
-      case 'albums':
-        toggleAlbumYearRangeMode(isRange);
-        // If switching to range mode, also set a default range
-        if (isRange && availableYears.length >= 2) {
-          handleAlbumYearRangeChange({
-            startYear: availableYears[0],
-            endYear: availableYears[availableYears.length - 1]
-          });
-        }
-        break;
-      case 'custom':
-        setCustomYearRangeMode(isRange);
-        if (isRange && availableYears.length >= 2) {
-          setCustomYearRange({
-            startYear: availableYears[0],
-            endYear: availableYears[availableYears.length - 1]
-          });
-        }
-        break;
-      case 'patterns':
-        setPatternYearRangeMode(isRange);
-        if (isRange && availableYears.length >= 2) {
-          setPatternYearRange({
-            startYear: availableYears[0],
-            endYear: availableYears[availableYears.length - 1]
-          });
-        }
-        break;
-      case 'calendar':
-        toggleCalendarYearRangeMode(isRange);
-        if (isRange && availableYears.length >= 2) {
-          setCalendarYearRange({
-            startYear: availableYears[0],
-            endYear: availableYears[availableYears.length - 1]
-          });
-        }
-        break;
-      case 'behavior':
-        setBehaviorYearRangeMode(isRange);
-        if (isRange && availableYears.length >= 2) {
-          setBehaviorYearRange({
-            startYear: availableYears[0],
-            endYear: availableYears[availableYears.length - 1]
-          });
-        }
-        break;
-      case 'discovery':
-        setDiscoveryYearRangeMode(isRange);
-        if (isRange && availableYears.length >= 2) {
-          setDiscoveryYearRange({
-            startYear: availableYears[0],
-            endYear: availableYears[availableYears.length - 1]
-          });
-        }
-        break;
-      case 'podcasts':
-        setPodcastYearRangeMode(isRange);
-        if (isRange && availableYears.length >= 2) {
-          setPodcastYearRange({
-            startYear: availableYears[0],
-            endYear: availableYears[availableYears.length - 1]
-          });
-        }
-        break;
-      default:
-        // Default behavior
-        break;
+
+    const rangeModeHandlers = {
+      artists: { toggle: toggleYearRangeMode, setRange: handleYearRangeChange },
+      albums: { toggle: toggleAlbumYearRangeMode, setRange: handleAlbumYearRangeChange },
+      custom: { toggle: setCustomYearRangeMode, setRange: setCustomYearRange },
+      patterns: { toggle: setPatternYearRangeMode, setRange: setPatternYearRange },
+      calendar: { toggle: toggleCalendarYearRangeMode, setRange: setCalendarYearRange },
+      behavior: { toggle: setBehaviorYearRangeMode, setRange: setBehaviorYearRange },
+      discovery: { toggle: setDiscoveryYearRangeMode, setRange: setDiscoveryYearRange },
+      podcasts: { toggle: setPodcastYearRangeMode, setRange: setPodcastYearRange },
+    };
+
+    const handlers = rangeModeHandlers[activeTab];
+    if (handlers) {
+      handlers.toggle(isRange);
+      if (isRange && availableYears.length >= 2) {
+        handlers.setRange({
+          startYear: availableYears[0],
+          endYear: availableYears[availableYears.length - 1]
+        });
+      }
     }
-  }, [activeTab, artistsByYear, toggleYearRangeMode, toggleAlbumYearRangeMode, handleYearRangeChange, handleAlbumYearRangeChange]);
+  }, [activeTab, artistsByYear, toggleYearRangeMode, toggleAlbumYearRangeMode, toggleCalendarYearRangeMode, handleYearRangeChange, handleAlbumYearRangeChange]);
 
   // Portrait status-bar band: iOS draws an opaque status bar (safe-area-inset
   // is 0) and picks its color by sampling the content just below it — a 1px

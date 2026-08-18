@@ -959,6 +959,29 @@ export const TAB_ACCENT_HEX = {
   dark:  { upload: '#4c1d95', stats: '#312e81', artists: '#1e3a8a', albums: '#164e63', custom: '#064e3b', tracks: '#7f1d1d', calendar: '#14532d', patterns: '#713f12', behavior: '#78350f', discovery: '#7c2d12', podcasts: '#7f1d1d', playlists: '#881337', updates: '#701a75', data: '#000000' },
 };
 
+// ---------------------------------------------------------------------------
+// Per-tab colorful-mode themes: bg is the tab's own color family (matches the
+// original TopTabs backgrounds), text is the same wheel shifted 4 tabs down so
+// text contrasts with the background. Data breaks the pattern on purpose —
+// terminal green on green.
+// ---------------------------------------------------------------------------
+
+export const TAB_SIDEBAR_THEMES = {
+  updates:   { bg: 'fuchsia', text: 'cyan' },
+  upload:    { bg: 'violet',  text: 'emerald' },
+  stats:     { bg: 'indigo',  text: 'green' },
+  artists:   { bg: 'blue',    text: 'yellow' },
+  albums:    { bg: 'cyan',    text: 'amber' },
+  custom:    { bg: 'emerald', text: 'orange' },
+  calendar:  { bg: 'green',   text: 'red' },
+  patterns:  { bg: 'yellow',  text: 'rose' },
+  behavior:  { bg: 'amber',   text: 'fuchsia' },
+  discovery: { bg: 'orange',  text: 'violet' },
+  podcasts:  { bg: 'red',     text: 'indigo' },
+  playlists: { bg: 'rose',    text: 'blue' },
+  data:      { bg: 'green',   text: 'green' },
+};
+
 // The color the iOS status-bar strip and Safari chrome should show right now.
 export function getChromeTint(activeTab, isColorful, isDarkMode) {
   if (isColorful) {
