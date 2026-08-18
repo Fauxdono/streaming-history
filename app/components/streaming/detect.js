@@ -1,6 +1,3 @@
-import * as XLSX from 'xlsx';
-import { calculateArtistStreaks } from './streaks.js';
-
 export function detectFileType(filename, content) {
   // For JSON files, check the content structure
   if (filename.endsWith('.json')) {
@@ -131,6 +128,3 @@ export function isTidalCSV(content) {
     return false;
   }
 }
-
-// Core stats calculation - optimized version
-// Cache for calculateArtistStreaks

@@ -1,8 +1,10 @@
 // exportworker.js
 // Service Worker for background Excel and JSON export processing
 
-// Import ExcelJS library for Excel exports
-importScripts('https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js');
+// Import ExcelJS library for Excel exports. Served from our own origin so
+// exports work offline in the PWA; the file is a copy of
+// node_modules/exceljs/dist/exceljs.min.js (re-copy it when bumping exceljs).
+importScripts('/vendor/exceljs.min.js');
 
 // Listen for messages from the main thread
 self.addEventListener('message', async event => {
