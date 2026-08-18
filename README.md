@@ -1,37 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Cakeculator 🎂
 
-## Getting Started
+Merge your listening history from every streaming service you've ever used into
+one library, and explore it: all-time rankings, yearly breakdowns, streaks, brief
+obsessions, listening patterns, a calendar heatmap, podcast stats, and
+recommendations.
 
-First, run the development server:
+Named after Cake the cat. The cake layers are your merged streaming services.
+
+## Supported sources
+
+Upload the data export from any of these and Cakeculator parses, normalizes, and
+deduplicates them into one play history:
+
+- **Spotify** (extended streaming history)
+- **Apple Music** (play activity CSV)
+- **Deezer** (listening history XLSX, including playlists and favorites)
+- **Last.fm** (scrobbles via JSON/CSV export, or live via API connect)
+- **SoundCloud** (play history CSV)
+- **Tidal** (streaming history CSV)
+- **TuneMyMusic** (transfer CSVs)
+- **Rockbox** (`.scrobbler.log` from DAPs, uploadable or scrobbled live)
+- **Cakeculator's own Excel export** — re-import a previous session
+
+## How it works
+
+Everything runs in your browser. Uploaded files are parsed client-side; nothing
+is sent to a server. Your merged library lives in localStorage/IndexedDB, with
+optional backup and cross-device sync through your own Google Drive. Installable
+as a PWA (add to home screen on iOS).
+
+## Development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run dev    # dev server at localhost:3000 (service worker disabled in dev)
+npm test       # vitest — parsing/stats logic tests
+npm run lint   # eslint
+npm run build  # production build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# Trigger deployment
+Built with Next.js + React + Tailwind, deployed on Vercel. The data-processing
+core lives in `app/components/streaming/` (one parser per service, plus
+normalization, dedup, aggregation, and streak modules) behind the
+`streaming-adapter.js` barrel. See `CLAUDE.md` for the full architecture map and
+`DEVELOPMENT_LOG.md` for the design philosophy.
