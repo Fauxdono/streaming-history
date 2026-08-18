@@ -215,7 +215,7 @@ export default function UploadTab({
                   </div>
                   <div className="flex items-start gap-3 mb-3">
                     <span className={`flex-shrink-0 w-6 h-6 ${colorMode === 'colorful' ? 'bg-violet-600 text-[#FDF6E3]' : (isDarkMode ? 'bg-black text-[#FDF6E3] border border-[#4169E1]' : 'bg-white text-black border border-black')} rounded-full flex items-center justify-center text-sm font-bold`}>3</span>
-                    <span>Click "Calculate Statistics" and explore your data</span>
+                    <span>Click &ldquo;Calculate Statistics&rdquo; and explore your data</span>
                   </div>
                 </div>
                 <div className="mt-auto pt-3">

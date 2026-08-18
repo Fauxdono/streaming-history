@@ -58,7 +58,7 @@ export default function PrivacyPolicy() {
         <div>
           <h2 className="text-xl font-bold mb-2">Local Storage</h2>
           <p>
-            Cakeculator uses your browser's local storage to save preferences and settings
+            Cakeculator uses your browser&rsquo;s local storage to save preferences and settings
             (such as omitted tracks, theme preferences, and display options). This data
             stays on your device and is not transmitted anywhere.
           </p>

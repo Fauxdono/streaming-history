@@ -53,7 +53,7 @@ export default function TermsOfService() {
           <h2 className="text-xl font-bold mb-2">Google Drive Integration</h2>
           <p>
             The optional Google Drive sync feature allows you to save your data for
-            cross-device access. By using this feature, you also agree to Google's
+            cross-device access. By using this feature, you also agree to Google&rsquo;s
             Terms of Service. You can disconnect Google Drive access at any time.
           </p>
         </div>
@@ -61,7 +61,7 @@ export default function TermsOfService() {
         <div>
           <h2 className="text-xl font-bold mb-2">Disclaimer of Warranties</h2>
           <p>
-            Cakeculator is provided "as is" without warranties of any kind, either
+            Cakeculator is provided &ldquo;as is&rdquo; without warranties of any kind, either
             express or implied. We do not guarantee the accuracy of any statistics,
             visualizations, or analysis produced by the service. The service may
             contain bugs or errors.

@@ -835,6 +835,7 @@ const filteredData = useMemo(() => {
       </PieChart>
     </ResponsiveContainer>
   ));
+  DonutChart.displayName = 'DonutChart';
 
   const TabButton = ({ id, label }) => (
     <button
